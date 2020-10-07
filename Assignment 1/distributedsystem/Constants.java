@@ -1,0 +1,10 @@
+package distributedsystem;
+
+public class Constants {
+    static final String CC = "CC";
+    static final String TA1 = "TA1";
+    static final String TA2 = "TA2";
+    static final String STUD_INFO = "./stud_info.txt";
+    static final String SORTED_ROLL = "./output/sorted_roll.txt";
+    static final String SORTED_NAME = "./output/sorted_name.txt";
+}

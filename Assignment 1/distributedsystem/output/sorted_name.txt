@@ -1,0 +1,4 @@
+170101019,Chirag Gupta,chirag@iitg.ac.in,62,TA2
+170101030,Kartik Gupta,kartik@iitg.ac.in,44,TA2
+170101082,Lavish Gulati,gulat170123030@iitg.ac.in,95,CC
+170101076,Vakul Gupta,vakul@iitg.ac.in,110,CC
