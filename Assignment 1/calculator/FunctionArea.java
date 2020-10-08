@@ -6,7 +6,7 @@ import javax.swing.JButton;
 import java.awt.Color;
 import java.awt.GridLayout;
 
-// Function area contains all the operators: +, -, *, /, =. C
+// Function area contains all the operators: +, -, *, /, =, C
 public class FunctionArea {
     public JPanel functionPanel;
     // Declare all required buttons

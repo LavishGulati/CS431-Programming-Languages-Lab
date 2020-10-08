@@ -2,6 +2,7 @@ package distributedsystem;
 
 // Libraries required by the program
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 /* Teacher updates the marks of the students and prints the final output in two
 files: sorted_roll.txt and sorted_name.txt */
@@ -45,10 +46,16 @@ public class Teacher extends Thread {
             String teacher = getName();
             // If entry exists in the record
             if(distributedSystem.record.get(rollNumber) != null){
-                // Handle synchronization on the student entry
-                synchronized(distributedSystem.record.get(rollNumber)){
+                // Acquire the lock (if not already acquired by another thread)
+                ReentrantLock re = distributedSystem.locks.get(rollNumber);
+                re.lock();
+                try{
                     // Update the entry after the semaphore is acquired
                     updateEntry(rollNumber, distributedSystem.record.get(rollNumber), update, teacher);
+                }
+                finally{
+                    // Release the lock after updation
+                    re.unlock();
                 }
             }
             // If entry does not exist in the record, throw error

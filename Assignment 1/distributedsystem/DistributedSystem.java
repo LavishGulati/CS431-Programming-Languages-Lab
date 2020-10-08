@@ -8,11 +8,14 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
 
 // Data Modification in Distributed System
 public class DistributedSystem{
     // Map of the complete record containing all student entries
     public Map<String, ArrayList<String>> record;
+    // Map of reentrant lock for each student entry
+    public Map<String, ReentrantLock> locks;
     // List of all updation requests
     private ArrayList<ArrayList<String>> input;
     OutputWriter outputWriter;
@@ -22,6 +25,7 @@ public class DistributedSystem{
     // Constructor for distributed system
     DistributedSystem(){
         record = new HashMap<>();
+        locks = new HashMap<>();
         input = new ArrayList<>();
         outputWriter = new OutputWriter(this);
     }
@@ -42,6 +46,8 @@ public class DistributedSystem{
             entry.add(data[4]);
             // Add the entry to the record
             record.put(data[0], entry);
+            // Initialize a new reentrant lock and add it to the map
+            locks.put(data[0], new ReentrantLock());
         }
     }
 

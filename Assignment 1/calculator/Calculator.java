@@ -5,7 +5,7 @@ import javax.swing.JFrame;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-// Calculator
+// Calculator 1.0
 public class Calculator extends JFrame implements KeyListener {
     DisplayArea displayArea;
     NumberArea numberArea;
@@ -62,7 +62,7 @@ public class Calculator extends JFrame implements KeyListener {
         if(e.getKeyCode() == KeyEvent.VK_ENTER){
             // If scanner is highlighting number area
             if(scanner.stage == 0){
-                /* Append the numerical character to the display area and
+                /* Appends the numerical character to the display area and
                 change the stage to function area */
                 char c = (char)(scanner.num_id + '0');
                 displayArea.appendChar(c);

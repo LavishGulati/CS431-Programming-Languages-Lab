@@ -14,7 +14,7 @@ public class DisplayArea {
         createUI();
     }
 
-     // Creates UI for display field
+    // Creates UI for display field
     private void createUI(){
         // Initialize with empty field
         displayField = new JTextField("");

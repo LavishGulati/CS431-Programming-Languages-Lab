@@ -1,20 +1,27 @@
 package calculator2;
 
+// Libraries required by the program
 import javax.swing.SwingWorker;
 
+// Function Scanner highlights the buttons in a periodic fashion
 public class FunctionScanner extends SwingWorker {
     private Calculator2 calculator;
+    // ID of the current function button
     public int id;
 
     FunctionScanner(Calculator2 calculator){
         this.calculator = calculator;
+        // Initial ID point to first button in the panel
         id = 0;
     }
 
+    // Do in background
     @Override
     protected String doInBackground() throws Exception {
         while(true){
             try{
+                /* Highlight the button represented by function ID for
+                SLEEP_TIME ms */
                 switch(id){
                     case 0:
                         calculator.functionArea.addKey.setOpaque(true);
@@ -59,6 +66,7 @@ public class FunctionScanner extends SwingWorker {
                         calculator.repaint();
                         break;
                 }
+                // Increment function ID to highlight next button
                 id = (id+1)%6;
             }
             catch(Exception e){

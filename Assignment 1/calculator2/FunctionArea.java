@@ -1,13 +1,15 @@
 package calculator2;
 
+// Libraries required by the program
 import javax.swing.JPanel;
 import javax.swing.JButton;
-
 import java.awt.Color;
 import java.awt.GridLayout;
 
+// Function area contains all the operators: +, -, *, /, =, C
 public class FunctionArea {
     public JPanel functionPanel;
+    // Declare all required buttons
     public JButton addKey;
     public JButton subtractKey;
     public JButton productKey;
@@ -19,15 +21,19 @@ public class FunctionArea {
         createUI();
     }
 
+    // Creates UI for the function area
     void createUI(){
+        // Grid layout for the panel
         GridLayout layout = new GridLayout(2, 3);
         layout.setHgap(Constants.PADDING);
         layout.setVgap(Constants.PADDING);
 
+        // Set size and location
         functionPanel = new JPanel(layout);
         functionPanel.setLocation(Constants.PADDING, Constants.DISPLAY_FIELD_HEIGHT+6*Constants.PADDING+4*Constants.FIELD_HEIGHT);
         functionPanel.setSize(Constants.WIDTH-2*Constants.PADDING, 2*Constants.FIELD_HEIGHT+Constants.PADDING);
 
+        // Add all the required buttons
         addKey = new JButton("+");
         addKey.setBackground(Color.CYAN);
         addKey.setOpaque(false);
