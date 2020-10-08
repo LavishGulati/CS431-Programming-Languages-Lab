@@ -94,7 +94,8 @@ public class DisplayArea {
         case '/':
             // Cannot divide by zero
             if (b == 0){
-                throw new UnsupportedOperationException("Cannot divide by zero");
+                System.out.println("Cannot divide by zero. Returning 0 for the operation...");
+                return 0;
             } 
             return a / b; 
         } 

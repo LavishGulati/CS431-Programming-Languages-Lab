@@ -23,6 +23,10 @@ java distributedsystem.DistributedSystem
 # Follow the instructions for various operations
 ```
 
+#### Output
+* Final output is printed in the ./output directory containing the files sorted_name.txt and sorted_roll.txt.
+* Changes are also reflected in the file stud_info.txt.
+
 ---
 
 ## 3.1 Calculator 1.0 for Differently Abled Persons
@@ -45,7 +49,7 @@ java calculator.Calculator
 #### Steps to run
 ```shell
 javac -d . *.java
-java calculator.Calculator
+java calculator2.Calculator2
 ```
 
 #### Instructions

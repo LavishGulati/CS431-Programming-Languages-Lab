@@ -53,7 +53,7 @@ public class DistributedSystem{
 
     // Reads the teacher name from the terminal
     private String getTeacher(){
-        System.out.println("Enter teacher name:");
+        System.out.println("Enter teacher name (CC, TA1 or TA2):");
         while(true){
             String teacher = scanner.next();
             if(teacher.equals("CC") || teacher.equals("TA1") || teacher.equals("TA2")){
@@ -73,24 +73,45 @@ public class DistributedSystem{
 
     // Reads the marks update from the terminal
     private String getUpdate() {
-        // Choose between increase or decrease
-        System.out.println("Choose an option:");
-        System.out.println("1. Increase marks");
-        System.out.println("2. Decrease marks");
-
         while(true){
-            int choice = scanner.nextInt();
+            // Choose between increase or decrease
+            System.out.println("Choose an option:");
+            System.out.println("1. Increase marks");
+            System.out.println("2. Decrease marks");
+
+            int choice;
+            try{
+                choice = scanner.nextInt();
+            }
+            catch(Exception e){
+                scanner.nextLine();
+                System.out.println("Invalid input. Try again.");
+                continue;
+            }
+
             // If increase, return +update
             if(choice == 1){
                 System.out.println("Increase marks by:");
-                int update = scanner.nextInt();
-                return String.valueOf(update);
+                try{
+                    int update = scanner.nextInt();
+                    return String.valueOf(update);
+                }
+                catch(Exception e){
+                    scanner.nextLine();
+                    System.out.println("Invalid input. Try again.");
+                }
             }
             // If decrease, return -update
             else if(choice == 2){
                 System.out.println("Decrease marks by:");
-                int update = scanner.nextInt();
-                return String.valueOf(-update);
+                try{
+                    int update = scanner.nextInt();
+                    return String.valueOf(-update);
+                }
+                catch(Exception e){
+                    scanner.nextLine();
+                    System.out.println("Invalid input. Try again.");
+                }
             }
             else{
                 System.out.println("Invalid option. Try again.");
@@ -170,7 +191,16 @@ public class DistributedSystem{
             System.out.println("1. Update marks");
             System.out.println("2. Execute");
             System.out.println("3. Exit");
-            int choice = scanner.nextInt();
+            int choice;
+            try{
+                choice = scanner.nextInt();
+            } 
+            catch(Exception e){
+                scanner.nextLine();
+                System.out.println("Invalid input. Try again.");
+                continue;
+            }
+
             if(choice == 1){
                 distributedSystem.appendRequest();
             }
