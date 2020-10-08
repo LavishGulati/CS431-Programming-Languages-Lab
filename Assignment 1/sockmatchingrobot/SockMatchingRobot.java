@@ -1,80 +1,86 @@
 package sockmatchingrobot;
 
+// Libraries required by the program
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.concurrent.Semaphore;
 
+// Sock matching robot
 public class SockMatchingRobot{
-    private int numRobots;
-    private ArrayList<Integer> socks;
+    // To indicate the number of Robotic Arms
+    private int numRoboticArms;
+    // Heap of socks
+    public ArrayList<Integer> socks;
+    // List of semaphores for each sock
+    public ArrayList<Semaphore> semaphores;
     private ShelfManagerRobot shelfManagerRobot;
     private MatchingMachine matchingMachine;
+    // List of robotic arms
     private ArrayList<RoboticArm> roboticArms;
-    private Random rand = new Random();
 
-    private SockMatchingRobot(int numRobots, ArrayList<Integer> socks){
-        this.numRobots = numRobots;
+    // Constructor for sock matching robot
+    private SockMatchingRobot(int numRoboticArms, ArrayList<Integer> socks){
+        this.numRoboticArms = numRoboticArms;
         this.socks = socks;
 
         shelfManagerRobot = new ShelfManagerRobot();
         matchingMachine = new MatchingMachine(shelfManagerRobot);
 
+        /* Initialize the required number of robotic arms and add them to the
+        list */
         roboticArms = new ArrayList<>();
-        for(int i = 0; i < this.numRobots; i++){
+        for(int i = 0; i < this.numRoboticArms; i++){
             RoboticArm roboticArm = new RoboticArm(this, matchingMachine, i);
             roboticArms.add(roboticArm);
         }
-    }
 
-    int pickSock(){
-        int id = -1;
-        int sock = Constants.NULL_SOCK;
-
-        synchronized(socks){
-            if(!socks.isEmpty()){
-                id = rand.nextInt(socks.size());
-            }
-
-            if(id != -1){
-                sock = socks.get(id);
-                socks.remove(id);
-            }
+        // Initialize all semaphores and add them to the list
+        semaphores = new ArrayList<>();
+        for(int i = 0; i < socks.size(); i++){
+            semaphores.add(new Semaphore(1));
         }
-
-        return sock;
     }
 
+    // Starts the sock matching robot
     void start() throws InterruptedException {
+        // Starts all the robotic arms
         for(RoboticArm roboticArm : roboticArms){
             roboticArm.start();
         }
 
+        // Wait for all robotic arms to complete their execution
         for(RoboticArm roboticArm : roboticArms){
             roboticArm.join();
         }
 
+        // Print the final output
         shelfManagerRobot.printOutput();
     }
 
     public static void main(String []args) throws FileNotFoundException, InterruptedException {
+        // If input file not supplied, throw error
         if(args.length < 1){
             System.out.println("Path of input file not supplied.");
             return;
         }
 
+        // Scanner to read input from the file
         File file = new File(args[0]);
         Scanner scanner = new Scanner(file);
 
-        int numRobots = scanner.nextInt();
+        // Read number of robotic arms
+        int numRoboticArms = scanner.nextInt();
 
+        // Read the heap of socks
         ArrayList<Integer> socks = new ArrayList<>();
         while(scanner.hasNextInt()){
             socks.add(scanner.nextInt());
         }
 
-        SockMatchingRobot sockMatchingRobot = new SockMatchingRobot(numRobots, socks);
+        // Initialize the sock matching robot and start it
+        SockMatchingRobot sockMatchingRobot = new SockMatchingRobot(numRoboticArms, socks);
         sockMatchingRobot.start();
     }
 }

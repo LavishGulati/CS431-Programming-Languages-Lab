@@ -1,5 +1,6 @@
 package distributedsystem;
 
+// Libraries required by the program
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -8,18 +9,24 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+// Data Modification in Distributed System
 public class DistributedSystem{
+    // Map of the complete record containing all student entries
     public Map<String, ArrayList<String>> record;
+    // List of all updation requests
     private ArrayList<ArrayList<String>> input;
     OutputWriter outputWriter;
+    // Scanner to read input from terminal
     private static Scanner scanner = new Scanner(System.in);
 
+    // Constructor for distributed system
     DistributedSystem(){
         record = new HashMap<>();
         input = new ArrayList<>();
         outputWriter = new OutputWriter(this);
     }
 
+    // Reads the initial record from the input file
     private void readInput(String path) throws FileNotFoundException {
         File file = new File(path);
         Scanner file_scanner = new Scanner(file);
@@ -33,10 +40,12 @@ public class DistributedSystem{
             entry.add(data[2]);
             entry.add(data[3]);
             entry.add(data[4]);
+            // Add the entry to the record
             record.put(data[0], entry);
         }
     }
 
+    // Reads the teacher name from the terminal
     private String getTeacher(){
         System.out.println("Enter teacher name:");
         while(true){
@@ -50,23 +59,28 @@ public class DistributedSystem{
         }
     }
 
+    // Reads the roll number from the terminal
     private String getRollNumber() {
         System.out.println("Enter student roll number:");
         return scanner.next();
     }
 
+    // Reads the marks update from the terminal
     private String getUpdate() {
+        // Choose between increase or decrease
         System.out.println("Choose an option:");
         System.out.println("1. Increase marks");
         System.out.println("2. Decrease marks");
 
         while(true){
             int choice = scanner.nextInt();
+            // If increase, return +update
             if(choice == 1){
                 System.out.println("Increase marks by:");
                 int update = scanner.nextInt();
                 return String.valueOf(update);
             }
+            // If decrease, return -update
             else if(choice == 2){
                 System.out.println("Decrease marks by:");
                 int update = scanner.nextInt();
@@ -78,7 +92,8 @@ public class DistributedSystem{
         }
     }
 
-    private void appendInput(){
+    // Reads updation request and appends it to the list
+    private void appendRequest(){
         String teacher = getTeacher();
         String rollNumber = getRollNumber();
         String update = getUpdate();
@@ -92,81 +107,66 @@ public class DistributedSystem{
         System.out.println(entry);
     }
 
+    // Initializes the system to execute unfinished updation requests
     private void update() throws InterruptedException, IOException {
-        System.out.println("Choose an option:");
-        System.out.println("1. Record level updation");
-        System.out.println("2. File level updation");
-
+        /* Initializes three Teacher instances (threads) for each teacher. The
+        CC instance is created with maximum priority and TA1 and TA2 instances
+        are created with normal priorities. */
         Teacher cc = new Teacher(this, Constants.CC, Thread.MAX_PRIORITY);
         Teacher ta1 = new Teacher(this, Constants.TA1, Thread.NORM_PRIORITY);
         Teacher ta2 = new Teacher(this, Constants.TA2, Thread.NORM_PRIORITY);
 
-        while(true){
-            int choice = scanner.nextInt();
-            if(choice == 1){
-                cc.isSynchronize = true;
-                ta1.isSynchronize = true;
-                ta2.isSynchronize = true;
-                break;
-            }
-            else if(choice == 2){
-                cc.isSynchronize = false;
-                ta1.isSynchronize = false;
-                ta2.isSynchronize = false;
-                break;
-            }
-            else{
-                System.out.println("Invalid option. Try again.");
-            }
-        }
-
+        // Assigns the updation request to the specified teacher
         for(ArrayList<String> entry : input){
             String teacher = entry.get(0);
             String rollNumber = entry.get(1);
             String update = entry.get(2);
             switch(teacher){
                 case Constants.TA1:
-                    ta1.appendInput(rollNumber, update);
+                    ta1.appendRequest(rollNumber, update);
                     break;
                 case Constants.TA2:
-                    ta2.appendInput(rollNumber, update);
+                    ta2.appendRequest(rollNumber, update);
                     break;
                 case Constants.CC:
-                    cc.appendInput(rollNumber, update);
+                    cc.appendRequest(rollNumber, update);
                     break;
             }
         }
-
-        input.clear();
+        
+        // Starts the Teacher threads
         cc.start();
         ta1.start();
         ta2.start();
 
+        // Wait for all teachers to finish the execution
         cc.join();
         ta1.join();
         ta2.join();
 
+        // Clears the updation request list
+        input.clear();
+
+        // Writes the final output to the files
         outputWriter.writeOutput();
         System.out.println("Marks successfully updated!");
     }
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException, IOException {
-        if(args.length < 1){
-            System.out.println("Path of input file not supplied.");
-            return;
-        }
-
+        /* Initializes the distributed system and reads input from the existing
+        record */
         DistributedSystem distributedSystem = new DistributedSystem();
-        distributedSystem.readInput(args[0]);
+        distributedSystem.readInput(Constants.STUD_INFO);
 
         while(true){
+            // Choose an option to execute
             System.out.println("Choose an option:");
             System.out.println("1. Update marks");
             System.out.println("2. Execute");
             System.out.println("3. Exit");
             int choice = scanner.nextInt();
             if(choice == 1){
-                distributedSystem.appendInput();
+                distributedSystem.appendRequest();
             }
             else if(choice == 2){
                 distributedSystem.update();

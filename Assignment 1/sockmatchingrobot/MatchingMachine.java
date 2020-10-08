@@ -1,62 +1,85 @@
 package sockmatchingrobot;
 
+/* The matching machine takes a single sock from a robotic arm, pairs it with
+the matching color and passes the sock pair to the shelf manager robot */
 public class MatchingMachine {
     private ShelfManagerRobot shelfManagerRobot;
-    private Boolean isWhiteSock;
-    private Boolean isBlackSock;
-    private Boolean isBlueSock;
-    private Boolean isGreySock;
+    // To indicate whether single sock or pair of socks is formed
+    private Boolean isWhite;
+    private Boolean isBlack;
+    private Boolean isBlue;
+    private Boolean isGrey;
 
+    // Constructor for matching machine
     MatchingMachine(ShelfManagerRobot shelfManagerRobot){
         this.shelfManagerRobot = shelfManagerRobot;
-        isWhiteSock = false;
-        isBlackSock = false;
-        isBlueSock = false;
-        isGreySock = false;
+        // Initially, there is no sock pair formed
+        isWhite = false;
+        isBlack = false;
+        isBlue = false;
+        isGrey = false;
     }
 
-    void matchSock(int sock){
-        if(sock == Constants.WHITE_SOCK){
-            synchronized(isWhiteSock){
-                if(isWhiteSock){
-                    shelfManagerRobot.increasePairCount(Constants.WHITE_SOCK);
-                    isWhiteSock = false;
+    /* Pairs the socks with the matching color and passes it to the shelf 
+    manager robot */
+    void formPair(int color){
+        if(color == Constants.WHITE){
+            // Handle isWhite variable synchronously
+            synchronized(isWhite){
+                // Single sock of white color already present, so pair the socks
+                if(isWhite){
+                    shelfManagerRobot.increasePairCount(Constants.WHITE);
+                    isWhite = false;
+                    System.out.println("Pair of white socks formed by matching machine");
                 }
+                // No sock of white color present, so receive it
                 else{
-                    isWhiteSock = true;
+                    isWhite = true;
                 }
             }
         }
-        else if(sock == Constants.BLACK_SOCK){
-            synchronized(isBlackSock){
-                if(isBlackSock){
-                    shelfManagerRobot.increasePairCount(Constants.BLACK_SOCK);
-                    isBlackSock = false;
+        else if(color == Constants.BLACK){
+            // Handle isBlack variable synchronously
+            synchronized(isBlack){
+                // Single sock of black color already present, so pair the socks
+                if(isBlack){
+                    shelfManagerRobot.increasePairCount(Constants.BLACK);
+                    isBlack = false;
+                    System.out.println("Pair of black socks formed by matching machine");
                 }
+                // No sock of black color present, so receive it
                 else{
-                    isBlackSock = true;
+                    isBlack = true;
                 }
             }
         }
-        else if(sock == Constants.BLUE_SOCK){
-            synchronized(isBlueSock){
-                if(isBlueSock){
-                    shelfManagerRobot.increasePairCount(Constants.BLUE_SOCK);
-                    isBlueSock = false;
+        else if(color == Constants.BLUE){
+            // Handle isBlue variable synchronously
+            synchronized(isBlue){
+                // Single sock of blue color already present, so pair the socks
+                if(isBlue){
+                    shelfManagerRobot.increasePairCount(Constants.BLUE);
+                    isBlue = false;
+                    System.out.println("Pair of blue socks formed by matching machine");
                 }
+                // No sock of blue color present, so receive it
                 else{
-                    isBlueSock = true;
+                    isBlue = true;
                 }
             }
         }
-        else if(sock == Constants.GREY_SOCK){
-            synchronized(isGreySock){
-                if(isGreySock){
-                    shelfManagerRobot.increasePairCount(Constants.GREY_SOCK);
-                    isGreySock = false;
+        else if(color == Constants.GREY){
+            // Handle isGrey variable synchronously
+            synchronized(isGrey){
+                // Single sock of grey color already present, so pair the socks
+                if(isGrey){
+                    shelfManagerRobot.increasePairCount(Constants.GREY);
+                    isGrey = false;
+                    System.out.println("Pair of grey socks formed by matching machine");
                 }
+                // No sock of grey color present, so receive it
                 else{
-                    isGreySock = true;
+                    isGrey = true;
                 }
             }
         }
