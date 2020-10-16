@@ -11,21 +11,37 @@ bus(7, 'Maligaon', 'Lokhra', 16, 16.5, 7, 8).
 
 % Find minimum distance, time and cost between source and destination
 route(Src, Dest) :-
-	findMinWeight(Src, Dest, 'Distance'),
+	% If findMinWeight returns false, then no path exists
+	(findMinWeight(Src, Dest, 'Distance') -> true ;
+										write('No path exists!'), false),
 	findMinWeight(Src, Dest, 'Time'),
 	findMinWeight(Src, Dest, 'Cost').
 
 
 % Compute minimum weight between source and destination given type of weights
 findMinWeight(Src, Dest, Type) :-
-	dijkstra([Src-0], [], Type, MinDist),
-	write(Type), write(': '), printList(MinDist).
+	% Create initial Parent dictionary with parent of source as null
+	dict_create(Parent, parent, [Src='']),
+	% Call dijkstra for Src
+	% Returns the final parent dictionary as NewParent
+	dijkstra([Src-0], [], Type, MinDist, Parent, NewParent),
+	/* Check if Dest exists in the dictionary. If not, then no path from Src to
+	Dest exists */
+	get_dict(Dest, NewParent, _),
+	% Print output
+	write('Optimum '), write(Type), write(':\n'),
+	% Print path and compute final dest, time and cost
+	printPath(Src, Dest, NewParent, D, T, C), write('\n'),
+	write('Distance='), write(D), write(','),
+	write('Time='), write(T),  write(','),
+	write('Cost='), write(C), write('\n').
 
 
-% Base case for dijkstra: If no vertex left, return the final weights
-dijkstra([], VisSet, _, VisSet).
+/* Base case for dijkstra: If no vertex left, return the final weights and
+Parent dictionary */
+dijkstra([], VisSet, _, VisSet, Parent, Parent).
 % Dijkstra algorithm to compute single source shortest paths
-dijkstra(CurSet, VisSet, Type, MinDist) :-
+dijkstra(CurSet, VisSet, Type, MinDist, Parent, NewNewParent) :-
 	% Compute the vertex with minimum weight
 	% RestCurSet is the current set minus the min vertex
 	minVertex(CurSet, V-D, RestCurSet),
@@ -35,9 +51,9 @@ dijkstra(CurSet, VisSet, Type, MinDist) :-
 	findUpdatableSet(AdjSet, VisSet, NewAdjSet),
 	% Updates the weights of adjacent vertices
 	% NewCurSet is the new current set with updated weights
-	update(NewAdjSet, RestCurSet, D, NewCurSet),
+	update(NewAdjSet, RestCurSet, V, D, NewCurSet, Parent, NewParent),
 	% Call dijkstra recursively for remaining vertices 
-	dijkstra(NewCurSet, [V-D|VisSet], Type, MinDist).
+	dijkstra(NewCurSet, [V-D|VisSet], Type, MinDist, NewParent, NewNewParent).
 
 
 % Given the current set of vertices, returns the vertex with minimum weight
@@ -82,6 +98,11 @@ edge(U, V, D, 'Time') :-
 edge(U, V, D, 'Cost') :-
 	bus(_, U, V, _, _, _, D).
 
+% Returns all the parameters associated with the edge
+edge(U, V, B, D, T, C) :-
+	bus(B, U, V, T1, T2, D, C),
+	(T2 > T1 -> T is T2-T1
+			  ; T is 24+T2-T1).
 
 % Base case for findUpdatableSet: If no vertex left, return empty list
 findUpdatableSet([], _, []).
@@ -98,18 +119,19 @@ findUpdatableSet([H|T], VisSet, NewAdjSet) :-
 
 
 % Base case for update: If no vertex left, return the remaining set of vertices
-update([], CurSet, _, CurSet).
+update([], CurSet, _, _, CurSet, Parent, Parent).
 /* Given the adjacent set and min weight D, updates the weights of the vertices
 and returns the new current set */
-update([V1-D1|T], CurSet, D, NewCurSet) :-
-	/* If V1 is present in the current set, update the weight accordingly and
-	remove from current set. If V1 is not present in the current set (has
-	infinite weight), assign new weight */
-	(remove(CurSet, V1-D2, RestCurSet) -> VD is min(D2, D+D1)
-										; RestCurSet = CurSet, VD is D+D1),
+update([V1-D1|T], CurSet, V, D, NewCurSet, Parent, NewNewParent) :-
+	/* If V1 is present in the current set, update the weight, assign the new
+	parent and remove from current set. If V1 is not present in the current set
+	(has infinite weight), assign new weight and new parent*/
+	(remove(CurSet, V1-D2, RestCurSet) -> (D+D1 < D2 ->
+						VD is D+D1, NewParent = Parent.put(V1, V); VD is D2)
+				; RestCurSet = CurSet, VD is D+D1, NewParent = Parent.put(V1, V)),
 	NewCurSet = [V1-VD|SubNewCurSet],
 	% Call update recursively for remaining vertices
-	update(T, RestCurSet, D, SubNewCurSet).
+	update(T, RestCurSet, V, D, SubNewCurSet, NewParent, NewNewParent).
 
 
 /* Base case for remove: If current vertex is same as X, return the remaining
@@ -133,3 +155,17 @@ printList([H|T]) :-
 	write(V), write(': '), write(D), write(', '),
 	% Call printList recursively for remaining list
 	printList(T).
+
+
+% Base case for printPath: Print Src and initialize weights as 0
+printPath(Src, Src, _, 0, 0, 0) :-
+	write(Src).
+% Prints path and computes final dest, time and cost
+printPath(Src, Dest, Parent, D, T, C) :-
+	% Call printPath recursively for parent of Dest
+	printPath(Src, Parent.get(Dest), Parent, D1, T1, C1),
+	% Compute current weights and add it to recursive weights
+	edge(Parent.get(Dest), Dest, B, D2, T2, C2),
+	D is D1+D2, T is T1+T2, C is C1+C2,
+	% Print output
+	write(','), write(B), write('->'), write(Dest).
