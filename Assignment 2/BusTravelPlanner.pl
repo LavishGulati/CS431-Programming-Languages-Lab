@@ -24,7 +24,7 @@ findMinWeight(Src, Dest, Type) :-
 	dict_create(Parent, parent, [Src='']),
 	% Call dijkstra for Src
 	% Returns the final parent dictionary as NewParent
-	dijkstra([Src-0], [], Type, MinDist, Parent, NewParent),
+	dijkstra([Src-0], [], Type, _, Parent, NewParent),
 	/* Check if Dest exists in the dictionary. If not, then no path from Src to
 	Dest exists */
 	get_dict(Dest, NewParent, _),
@@ -66,7 +66,7 @@ the min vertex */
 minVertexHelper(Cur, [], Cur, []).
 % Helper function for minVertex
 minVertexHelper(Cur, [H|T], MinV, [H2|RestCurSet]) :-
-	H = V1-D1, Cur = V-D,
+	H = _-D1, Cur = _-D,
 	/* Depending on lesser weight, assign current vertex (probable candidate
 	for min vertex) and add the other vertex to rest set */
 	(D1 < D -> NextM = H, H2 = Cur
@@ -109,7 +109,7 @@ findUpdatableSet([], _, []).
 /* Given a set of vertices, returns the vertices which are not yet visited in
 the Dijkstra algorithm */
 findUpdatableSet([H|T], VisSet, NewAdjSet) :-
-	H = V-D,
+	H = V-_,
 	% If vertex V is a member of visited set, do not add it to the new set
 	% Else, add it to the new set
 	(member(V-_, VisSet) -> NewAdjSet = SubNewAdjSet
@@ -118,12 +118,18 @@ findUpdatableSet([H|T], VisSet, NewAdjSet) :-
 	findUpdatableSet(T, VisSet, SubNewAdjSet).
 
 
-waitingTime('', U, V, W) :-
+/* Base case for waitingTime: If parent is null (current vertex is source),
+return waiting time as 0 */
+waitingTime('', _, _, W) :-
 	W is 0.
-
+/* Given parent, current vertex and next vertex, finds the waiting time at
+current vertex */
 waitingTime(Par, U, V, W) :-
+	% Find arrival time at current vertex
 	bus(_, Par, U, _, T1, _, _),
+	% Find departure time from current vertex
 	bus(_, U, V, T2, _, _, _),
+	% Waiting time is difference between the departure time and arrival time
 	(T2 > T1 -> W is T2-T1
 			  ; W is 24+T2-T1).
 
@@ -178,6 +184,7 @@ printPath(Src, Dest, Parent, D, T, C) :-
 	printPath(Src, Parent.get(Dest), Parent, D1, T1, C1),
 	% Compute current weights and add it to recursive weights
 	edge(Parent.get(Dest), Dest, B, D2, T2, C2),
+	% Check if parent of parent of destination exists. If exists, 
 	(get_dict(Parent.get(Dest), Parent, _) -> 
 		waitingTime(Parent.get(Parent.get(Dest)), Parent.get(Dest), Dest, W);
 		W is 0),
