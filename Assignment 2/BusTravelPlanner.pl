@@ -118,6 +118,16 @@ findUpdatableSet([H|T], VisSet, NewAdjSet) :-
 	findUpdatableSet(T, VisSet, SubNewAdjSet).
 
 
+waitingTime('', U, V, W) :-
+	W is 0.
+
+waitingTime(Par, U, V, W) :-
+	bus(_, Par, U, _, T1, _, _),
+	bus(_, U, V, T2, _, _, _),
+	(T2 > T1 -> W is T2-T1
+			  ; W is 24+T2-T1).
+
+
 % Base case for update: If no vertex left, return the remaining set of vertices
 update([], CurSet, _, _, CurSet, Parent, Parent).
 /* Given the adjacent set and min weight D, updates the weights of the vertices
@@ -125,10 +135,11 @@ and returns the new current set */
 update([V1-D1|T], CurSet, V, D, NewCurSet, Parent, NewNewParent) :-
 	/* If V1 is present in the current set, update the weight, assign the new
 	parent and remove from current set. If V1 is not present in the current set
-	(has infinite weight), assign new weight and new parent*/
-	(remove(CurSet, V1-D2, RestCurSet) -> (D+D1 < D2 ->
-						VD is D+D1, NewParent = Parent.put(V1, V); VD is D2)
-				; RestCurSet = CurSet, VD is D+D1, NewParent = Parent.put(V1, V)),
+	(has infinite weight), assign new weight and new parent */
+	waitingTime(Parent.get(V), V, V1, W),
+	(remove(CurSet, V1-D2, RestCurSet) -> (D+D1+W < D2 ->
+						VD is D+D1+W, NewParent = Parent.put(V1, V); VD is D2)
+				; RestCurSet = CurSet, VD is D+D1+W, NewParent = Parent.put(V1, V)),
 	NewCurSet = [V1-VD|SubNewCurSet],
 	% Call update recursively for remaining vertices
 	update(T, RestCurSet, V, D, SubNewCurSet, NewParent, NewNewParent).
