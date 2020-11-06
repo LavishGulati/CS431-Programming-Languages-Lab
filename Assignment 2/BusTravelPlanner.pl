@@ -1,12 +1,12 @@
 /* Bus(Number, Origin, Destination Place, Departure Time, Arrival Time,
 Distance, Cost) */
-bus(1, 'Amingaon', 'Jalukbari', 14.5, 15, 1, 10).
-bus(2, 'Amingaon', 'Chandmari', 16, 16.5, 7, 8).
-bus(3, 'Jalukbari', 'Panbazar', 16, 16.5, 1, 8).
-bus(4, 'Panbazar', 'Chandmari', 16, 16.5, 2, 8).
-bus(5, 'Panbazar', 'Paltanbazar', 16, 16.5, 7, 8).
-bus(6, 'Chandmari', 'Maligaon', 16, 16.5, 7, 8).
-bus(7, 'Maligaon', 'Lokhra', 16, 16.5, 7, 8).
+bus(1, 'A', 'J', 14.5, 15, 1, 10).
+bus(2, 'A', 'C', 16, 16.5, 7, 8).
+bus(3, 'J', 'Pan', 16, 16.5, 1, 8).
+bus(4, 'Pan', 'C', 16, 16.5, 2, 8).
+bus(5, 'Pan', 'Pal', 16, 16.5, 7, 8).
+bus(6, 'C', 'M', 16, 16.5, 7, 8).
+bus(7, 'M', 'L', 16, 16.5, 7, 8).
 
 
 % Find minimum distance, time and cost between source and destination
@@ -138,7 +138,8 @@ update([V1-D1|T], CurSet, V, D, NewCurSet, Parent, NewNewParent) :-
 	(has infinite weight), assign new weight and new parent */
 	waitingTime(Parent.get(V), V, V1, W),
 	(remove(CurSet, V1-D2, RestCurSet) -> (D+D1+W < D2 ->
-						VD is D+D1+W, NewParent = Parent.put(V1, V); VD is D2)
+						VD is D+D1+W, NewParent = Parent.put(V1, V);
+						VD is D2, NewParent = Parent)
 				; RestCurSet = CurSet, VD is D+D1+W, NewParent = Parent.put(V1, V)),
 	NewCurSet = [V1-VD|SubNewCurSet],
 	% Call update recursively for remaining vertices
@@ -177,6 +178,9 @@ printPath(Src, Dest, Parent, D, T, C) :-
 	printPath(Src, Parent.get(Dest), Parent, D1, T1, C1),
 	% Compute current weights and add it to recursive weights
 	edge(Parent.get(Dest), Dest, B, D2, T2, C2),
-	D is D1+D2, T is T1+T2, C is C1+C2,
+	(get_dict(Parent.get(Dest), Parent, _) -> 
+		waitingTime(Parent.get(Parent.get(Dest)), Parent.get(Dest), Dest, W);
+		W is 0),
+	D is D1+D2, T is T1+T2+W, C is C1+C2,
 	% Print output
 	write(','), write(B), write('->'), write(Dest).
