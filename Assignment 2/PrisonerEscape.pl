@@ -145,11 +145,11 @@ initiate_depth_first_search() :-
     % G1 should be starting gate
     src(G1),
     % Set G1 as visited
-    asserta(visited(G1)),
+    asserta(isVisited(G1)),
     % Call depth first search from G1
     not(depth_first_search(G1, 0, [])),
     % Unset visited G1
-	retract(visited(G1)),
+	retract(isVisited(G1)),
 	fail.
 
 
@@ -187,13 +187,13 @@ depth_first_search(G1, Distance, Path) :-
     % G2 should not be visited. If visited, there will be a loop
     not(isVisited(G2)),
     % Set G2 as visited
-    asserta(visited(G2)),
+    asserta(isVisited(G2)),
     % Update total distance
     TotalDistance is Distance+D,
     % Recursively call depth first search from G2
     not(depth_first_search(G2, TotalDistance, FullPath)),
     % Unset visited G2
-	retract(visited(G2)),
+	retract(isVisited(G2)),
 	fail.
 
 
