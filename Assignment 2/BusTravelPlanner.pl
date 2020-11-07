@@ -1,7 +1,7 @@
 /* Bus(Number, Origin, Destination Place, Departure Time, Arrival Time,
 Distance, Cost) */
 bus(1, 'A', 'J', 14.5, 15, 1, 10).
-bus(2, 'A', 'C', 16, 16.5, 7, 8).
+bus(2, 'A', 'C', 16, 16.5, 15, 8).
 bus(3, 'J', 'Pan', 16, 16.5, 1, 8).
 bus(4, 'Pan', 'C', 16, 16.5, 2, 8).
 bus(5, 'Pan', 'Pal', 16, 16.5, 7, 8).
@@ -51,7 +51,7 @@ dijkstra(CurSet, VisSet, Type, MinDist, Parent, NewNewParent) :-
 	findUpdatableSet(AdjSet, VisSet, NewAdjSet),
 	% Updates the weights of adjacent vertices
 	% NewCurSet is the new current set with updated weights
-	update(NewAdjSet, RestCurSet, V, D, NewCurSet, Parent, NewParent),
+	update(NewAdjSet, RestCurSet, V, D, NewCurSet, Parent, NewParent, Type),
 	% Call dijkstra recursively for remaining vertices 
 	dijkstra(NewCurSet, [V-D|VisSet], Type, MinDist, NewParent, NewNewParent).
 
@@ -135,21 +135,28 @@ waitingTime(Par, U, V, W) :-
 
 
 % Base case for update: If no vertex left, return the remaining set of vertices
-update([], CurSet, _, _, CurSet, Parent, Parent).
+update([], CurSet, _, _, CurSet, Parent, Parent, _).
 /* Given the adjacent set and min weight D, updates the weights of the vertices
 and returns the new current set */
-update([V1-D1|T], CurSet, V, D, NewCurSet, Parent, NewNewParent) :-
+update([V1-D1|T], CurSet, V, D, NewCurSet, Parent, NewNewParent, Type) :-
 	/* If V1 is present in the current set, update the weight, assign the new
 	parent and remove from current set. If V1 is not present in the current set
 	(has infinite weight), assign new weight and new parent */
-	waitingTime(Parent.get(V), V, V1, W),
-	(remove(CurSet, V1-D2, RestCurSet) -> (D+D1+W < D2 ->
+	(Type == 'Time' ->
+		% If weight is of type time, compute the waiting time and add it
+		waitingTime(Parent.get(V), V, V1, W),
+		(remove(CurSet, V1-D2, RestCurSet) -> (D+D1+W < D2 ->
 						VD is D+D1+W, NewParent = Parent.put(V1, V);
 						VD is D2, NewParent = Parent)
-				; RestCurSet = CurSet, VD is D+D1+W, NewParent = Parent.put(V1, V)),
+				; RestCurSet = CurSet, VD is D+D1+W, NewParent = Parent.put(V1, V));
+		% Else proceed normally
+		(remove(CurSet, V1-D2, RestCurSet) -> (D+D1 < D2 ->
+					VD is D+D1, NewParent = Parent.put(V1, V);
+					VD is D2, NewParent = Parent)
+			; RestCurSet = CurSet, VD is D+D1, NewParent = Parent.put(V1, V))),
 	NewCurSet = [V1-VD|SubNewCurSet],
 	% Call update recursively for remaining vertices
-	update(T, RestCurSet, V, D, SubNewCurSet, NewParent, NewNewParent).
+	update(T, RestCurSet, V, D, SubNewCurSet, NewParent, NewNewParent, Type).
 
 
 /* Base case for remove: If current vertex is same as X, return the remaining
