@@ -1,4 +1,4 @@
-% Weights of all the edges/paths from X to Y containing W weight.
+% edge(source gate, destination gate, distance)
 edge('G1', 'G5', 4).
 edge('G2', 'G5', 6).
 edge('G3', 'G5', 8).
@@ -40,176 +40,221 @@ edge('G14', 'G17', 5).
 edge('G14', 'G18', 4).
 edge('G17', 'G18', 8).
 
+% Starting gates
 src('G1').
 src('G2').
 src('G3').
 src('G4').
 
+% Ending gate
 dest('G17').
 
-% Returns whether there is an edge between X and Y.
-edge(X,Y):- edge(X,Y,_).
-
-undirected_edge(X,Y):- edge(X,Y,_).
-undirected_edge(X,Y):- edge(Y,X,_).
-
-get_weight(X,Y,Z):- edge(X,Y,Z).
-get_weight(Y,X,Z):- edge(X,Y,Z).
+% Dynamic predicate indicating the set of visited vertices
+:- dynamic (isVisited/1).
 
 
-% Global Variables for storing the best weight, best paths and a visited_array.
-:-dynamic(best_weight/1).
-:-dynamic(best_paths/1).
-best_weight(999999).
-:-dynamic(visited/1).
-
-% Function for checking if a given list is empty or not.
-is_empty([]).
-
-% check_path function sees in the given list if the edge is valid then recursibely move to the next edge otherwise break. If the last element is the ending vertex then only return true.
-check_path([List]):-
-	[H|T] = List,
-	is_empty(T),
-	end(H).
-
-check_path(List):-
-	[X1,X2|_] = List,
-	undirected_edge(X1,X2),
-	[_|T] = List,
-	check_path(T).
-
-% valid Function is the one that is called by the user. It will check first if the start of the list is one of the given starting nodes and then call check_path. If the given input is not a valid path then it will go to the second function of valid.
-valid(List):-
-	[H|_] = List,
-	start(H),
-	check_path(List),
-	write("Path Found"),
-	!.
-
-valid(_):-
-	write("Path Not Found"),
-	fail.
-
-% print_path is used to print a given list containing vertices with arrows in middle of them.
-print_path(_,[]).
-
-print_path(Prefix,[H|T]):-
-	is_empty(T),
-	write(Prefix),
-	write(H),
-	nl.	
-
-print_path(Prefix,[H|T]):-
-	\+ is_empty(T),
-	format("~w~w -> ",[Prefix,H]),
-	print_path("",T).
-
-paths_util(C,Path):-
-	end(C),
-	append(Path,[C],NewPath),
-	print_path("",NewPath),
-	fail.
-
-paths_util(C,Path):-
-	\+ end(C),
-	append(Path,[C],NewPath),
-	undirected_edge(C, R),
-	\+ visited(R),
-	asserta(visited(R)),	
-	\+ paths_util(R,NewPath),
-	retract(visited(R)),
-	fail.
-
-paths():-
-	start(C),
-	asserta(visited(C)),
-	\+ paths_util(C,[]),
-	retract(visited(C)),
+% Print all possible paths from starting gate to ending gate
+all_paths() :-
+    % Find a starting gate
+    src(G1),
+    % Set G1 as visited
+    asserta(isVisited(G1)),
+    % Find all paths starting from G1
+    not(find_path(G1, [])),
+    % Unset visited G1
+	retract(isVisited(G1)),
 	fail.
 
 
-
-% Given Y as the maximum Sum observed till now and Sum is the current Path's sum.
-% 	If Y > Sum update Y to sum and delete all previous paths store the current path.
-%	If Y == Sum add current Path to best_paths.
-
-update(Y,Sum,Path):-
-	Y > Sum,
-	retract(best_weight(Y)),
-	asserta(best_weight(Sum)),
-	retractall(best_paths(_)),
-	assertz(best_paths(Path)).
-
-update(Y,Sum,Path):-
-	Y =:= Sum,
-	assertz(best_paths(Path)).
-
-
-% dfs_util is the utility function called by dfs function.
-% 	If current Path's sum is greater than best path sum, we can drop it and dont need to go ahead in this path's direction.
-% 	If we have reached the end then call the update function.
-% 	Else look at all edges from current node and call dfs on them.
-
-dfs_util(_,Sum,_):-
-	best_weight(Y),
-	Sum >= Y,
+% Base case for find_path: If G1 is ending gate, print the path
+find_path(G1, Path) :-
+    % G1 should be ending gate
+    dest(G1),
+    % Append current path and G1 to get full path 
+    append(Path, [G1], FullPath),
+    % Print final path
+	print_list(FullPath),
 	fail.
-
-dfs_util(C,Sum,Path):-
-	end(C),
-	append(Path,[C],NewPath),	
-	best_weight(Y),
-	update(Y,Sum,NewPath),
+% Finds a path starting from gate G1
+find_path(G1, Path) :-
+    % G1 should not be ending gate
+    not(dest(G1)),
+    % Append current path and G1 to get full path
+    append(Path, [G1], FullPath),
+    % Check if some G2 exists such that there is an edge from G1 to G2
+    isEdge(G1, G2, _),
+    % G2 should not be visited. If visited, there will be a loop
+    not(isVisited(G2)),
+    % Set G2 as visited
+    asserta(isVisited(G2)),
+    % Recursively call find_path with G2 as starting gate
+    not(find_path(G2, FullPath)),
+    % Unset visited G2
+	retract(isVisited(G2)),
 	fail.
 
 
-% This is using undirected edges.
-dfs_util(C,Sum,Path):-
-	\+ end(C),	
-	append(Path,[C],NewPath),
-	undirected_edge(C, R),
-	get_weight(C,R,Y),
-	\+ visited(R),
-	asserta(visited(R)),
-	NewSum is Sum+Y,	
-	\+ dfs_util(R,NewSum,NewPath),
-	retract(visited(R)),
+% Check if there exists edge from G1 to G2 or G2 to G1
+isEdge(G1, G2, D) :-
+    edge(G1, G2, D).
+isEdge(G1, G2, D) :-
+    edge(G2, G1, D).
+
+
+% Base case for print_list: If no value in list, print newline
+print_list([]) :-
+    write('\n').
+% Prints list
+print_list([H|T]) :-
+    % Print current value
+    (is_empty(T) -> write(H);
+            write(H), write('-->')),
+    % Call print_list recursively for tail
+	print_list(T).
+
+
+% Checks if the list is empty
+is_empty(List) :-
+    not(member(_, List)).
+
+
+% Dynamic predicate indicating minimum distance
+:- dynamic (minDistance/1).
+% Set initial minimum distance to be INFINITY
+minDistance(2147483647).
+
+% Dynamic predicate indicating optimal path
+:- dynamic (optimalPath/1).
+
+
+% Finds optimal path with minimum distance for the given problem
+optimal() :-
+    % Initiate depth first search for optimal path
+    not(initiate_depth_first_search()),
+    % Print all optimal paths
+    not(print_optimal_paths()),
+    % Get MinDistance
+    minDistance(MinDistance),
+    % Print MinDistance
+    (MinDistance =:= 2147483647 -> write('No path exists!'), false
+                                ; write('Minimum Distance: '), write(MinDistance)).
+
+
+% Initiate depth first search from all starting gates
+initiate_depth_first_search() :-
+    % G1 should be starting gate
+    src(G1),
+    % Set G1 as visited
+    asserta(visited(G1)),
+    % Call depth first search from G1
+    not(depth_first_search(G1, 0, [])),
+    % Unset visited G1
+	retract(visited(G1)),
 	fail.
 
-% start dfs function from all possible starting locations. 
-dfs:-
-	start(C),	
-	asserta(visited(C)),
-	\+ dfs_util(C,0,[]),
-	retract(visited(C)),
+
+/* Base case for depth_first_search: If distance is greater than min distance,
+stop the DFS */
+depth_first_search(_, Distance, _) :-
+    % Get min distance
+    minDistance(MinDistance),
+    % Check if distance is greater than min distance
+	Distance > MinDistance,
 	fail.
 
-% print_paths prints all of the best paths using best_paths function.
-print_paths:-
-	best_paths(Y),
-	print_path("Path: ",Y),
+/* Base case for depth_first_search: If G1 is ending gate, update minimum
+distance */
+depth_first_search(G1, Distance, Path):-
+    % G1 should be ending gate
+    dest(G1),
+    % Append current path and G1 to get full path
+    append(Path, [G1], FullPath),	
+    % Get current minimum distance
+    minDistance(MinDistance),
+    % Update the minimum distance
+	updateMinDistance(MinDistance, Distance, FullPath),
 	fail.
 
-% print_weight checks if there is any path. If there is it prints the result.  
-print_weight(Z):-
-	Z =:= 999999,
-	print("No paths found from given start to end").
+% Call depth first search from G1
+depth_first_search(G1, Distance, Path) :-
+    % G1 should not be ending gate
+    not(dest(G1)),
+    % Append current path and G1 to get full path
+    append(Path, [G1], FullPath),
+    % Check if some G2 exists such that there is an edge from G1 to G2
+    % If the edge exists, get the weight of that edge
+    isEdge(G1, G2, D),
+    % G2 should not be visited. If visited, there will be a loop
+    not(isVisited(G2)),
+    % Set G2 as visited
+    asserta(visited(G2)),
+    % Update total distance
+    TotalDistance is Distance+D,
+    % Recursively call depth first search from G2
+    not(depth_first_search(G2, TotalDistance, FullPath)),
+    % Unset visited G2
+	retract(visited(G2)),
+	fail.
 
-print_weight(Z):-
-	format("Weight of Path: ~w ~n",[Z]).
 
-% precheck_database alerts the user if there is any negative distance.
-precheck_database:-
-	edge(_,_,X) , X < 0,
-	print("***Negative Weights Found***"),
-	nl.
+/* If distance is less than current min distance, reset optimal paths and add
+path to the list of optimal paths */
+updateMinDistance(MinDistance, Distance, Path) :-
+    % Check if distance is less than min distance
+    MinDistance > Distance,
+    % Unset minimum distance as MinDistance
+    retract(minDistance(MinDistance)),
+    % Set minimum distance as Distance
+    asserta(minDistance(Distance)),
+    % Unset all paths in optimalPath
+    retractall(optimalPath(_)),
+    % Add path to list of optimal paths
+	assertz(optimalPath(Path)).
 
-% optimal function is called by the user which will first check the database, then do dfs, then print the results.
-optimal:-
-	\+ precheck_database,
-	\+ dfs,
-	write("The following paths are the shortest:"),
-	nl,
-	\+ print_paths,
-	best_weight(Z),
-	print_weight(Z).
+/* If current min distance is same as distance, then add path to the list of
+optimal paths */
+updateMinDistance(MinDistance, Distance, Path) :-
+    % Check if min distance is same as distance
+    MinDistance =:= Distance,
+    % Add path to list of optimal paths
+	assertz(optimalPath(Path)).
+
+
+% Prints all optimal paths
+print_optimal_paths() :-
+    % Get all instances of optimal path
+    optimalPath(OptimalPath),
+    % Print optimal path
+    print_list(OptimalPath),
+    fail.
+
+
+% Check if given path is valid for the problem
+valid(Path) :-
+    % Get first gate in the path
+    [G1|_] = Path,
+    % First gate should be starting gate
+    src(G1),
+    % Check if the path is valid
+    isValid(Path),
+    !.
+
+
+/* Base case for isValid: If only one gate exists in path, that gate should be
+ending gate */
+isValid(Path) :-
+    [G1|T] = Path,
+    % Check if T is empty
+    is_empty(T),
+    % G1 should be ending gate
+	dest(G1).
+/* Checks if the path is valid by ensuring that there exist edges between the
+gates */
+isValid(Path) :-
+    % Get first two gates G1 and G2 from the path
+    [G1,G2|_] = Path,
+    % Check if there exists an edge between G1 and G2
+    isEdge(G1, G2, _),
+    [_|T] = Path,
+    % Call isValid recursively for rest of the path
+	isValid(T).

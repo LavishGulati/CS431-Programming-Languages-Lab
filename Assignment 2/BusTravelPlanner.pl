@@ -184,10 +184,12 @@ printPath(Src, Dest, Parent, D, T, C) :-
 	printPath(Src, Parent.get(Dest), Parent, D1, T1, C1),
 	% Compute current weights and add it to recursive weights
 	edge(Parent.get(Dest), Dest, B, D2, T2, C2),
-	% Check if parent of parent of destination exists. If exists, 
+	/* Check if parent of parent of destination exists. If exists, get waiting
+	time at parent of destination. Else, waiting time is 0 */
 	(get_dict(Parent.get(Dest), Parent, _) -> 
 		waitingTime(Parent.get(Parent.get(Dest)), Parent.get(Dest), Dest, W);
 		W is 0),
+	% Update the distance, time and cost for the path
 	D is D1+D2, T is T1+T2+W, C is C1+C2,
 	% Print output
 	write(','), write(B), write('->'), write(Dest).
