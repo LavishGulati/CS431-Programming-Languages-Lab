@@ -53,3 +53,24 @@ Invalid time!
 ---
 
 ## 3 - House Planner
+
+design area num_bedroom num_hall - Prints dimensions of all components given area, number of bedrooms and number of halls.
+
+#### Steps to run
+```shell
+ghci HousePlanner.hs
+```
+
+#### Examples
+```haskell
+-- NOTE: Press ':q' to exit the program.
+
+*Main> design 1000 3 2
+Bedroom: 3 (10,10)
+Hall: 2 (15,10)
+Kitchen: 1 (7,5)
+Bathroom: 4 (4,5)
+Garden: 1 (12,17)
+Balcony: 1 (9,9)
+Unused Space: 0
+```

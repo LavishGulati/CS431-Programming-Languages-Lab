@@ -55,7 +55,7 @@ nextMatch day time = do
     if day < 1 || day > 31 then
         putStrLn "Invalid day!"
     -- Invalid case for time
-    else if time < 0 || time > 23.59 then
+    else if time < 0 || time > 23.99 then
         putStrLn "Invalid time!"
     -- Print details of next match depending on day and time
     else
