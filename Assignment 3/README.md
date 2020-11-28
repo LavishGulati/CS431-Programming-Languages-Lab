@@ -53,6 +53,11 @@ fixture "team" - Displays fixture details of specified team.
 
 nextMatch day time - Displays next match details given day and time.
 
+#### Install dependencies
+```shell
+cabal install random --lib
+```
+
 #### Steps to run
 ```shell
 ghci IITGFootballLeague.hs
