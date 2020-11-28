@@ -9,7 +9,7 @@ unionSet - Returns union of two sets
 
 intersection - Returns intersection of two sets
 
-subtraction - Returns differencce of two sets, i.e. A-B
+subtraction - Returns difference of two sets, i.e. A-B
 
 addition - Returns addition of two sets
 
