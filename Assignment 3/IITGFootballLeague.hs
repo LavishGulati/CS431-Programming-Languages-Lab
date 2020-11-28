@@ -1,8 +1,11 @@
 -- Importing required libraries
 import Data.List
+import Data.Maybe
+import System.Directory
+import System.IO.Unsafe
+import Data.IORef
+import System.Random
 
--- Teams information
-teams = ["BS", "CM", "CH", "CV", "CS", "DS", "EE", "HU", "MA", "ME", "PH", "ST"]
 -- Match time information
 times = [("1-12-2020","9:30"),("1-12-2020","7:30"),("2-12-2020","9:30"),("2-12-2020","7:30"),("3-12-2020","9:30"),("3-12-2020","7:30")]
 
@@ -11,17 +14,6 @@ numTeams = length teams
 -- Number of matches
 maxMatches = numTeams `div` 2
 
--- Random seed used for shuffling list
-seed = 1000
--- Shuffled list of teams
-shuffledTeams = (permutations teams)!!seed
-
--- First half of shuffled list
-firstHalfShuffledTeams = take maxMatches shuffledTeams
--- Second half of shuffled list
-secondHalfShuffledTeams = drop maxMatches shuffledTeams
--- Create fixtures by combining first half of teams and second half of teams
-fixtures = zip firstHalfShuffledTeams secondHalfShuffledTeams
 
 -- Prints match information in format: Team1 vs Team2     Date     Time
 writeDetails :: Int -> IO()
@@ -39,13 +31,27 @@ fixtureHelper i = if i == maxMatches then return() else do
 fixture :: String -> IO()
 -- Base case for fixture: When argument is "all", print all fixtures details
 fixture "all" = do
-    fixtureHelper 0
+	g <- newStdGen
+	let temp = randomR (100, 200) g
+    let newSeed = fst(temp)
+    let listTemp = permutations ["BS","CM","CH","CV","CS","DS","EE","HU","MA","ME","PH","ST"]!!newSeed
+    -- First half of shuffled list
+	firstHalfShuffledTeams = take maxMatches shuffledTeams
+	-- Second half of shuffled list
+	secondHalfShuffledTeams = drop maxMatches shuffledTeams
+	-- Create fixtures by combining first half of teams and second half of teams
+	fixtures = zip firstHalfShuffledTeams secondHalfShuffledTeams
+
+    writeg fixtures
+    fixtureHelper 0 fixtures
+
 -- Prints fixture details of specified team
 fixture team = do
+	fixtures <- readg
     -- If team exists, then write fixture details of that team
     -- Else print error 
     case elemIndex team shuffledTeams of
-        Just id -> if id < maxMatches then writeDetails id else writeDetails (id-maxMatches)
+        Just id -> if id < maxMatches then writeDetails id fixtures else writeDetails (id-maxMatches) fixtures
         Nothing -> putStrLn "Team does not exist!"
 
 -- Prints next match details given date and time

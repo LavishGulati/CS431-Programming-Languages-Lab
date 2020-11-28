@@ -25,38 +25,8 @@ possibleAreas from to =
 -- Forms tuple (a, b) given list as and bs
 combinations1 as bs = [(a, b) | a <- as, b <- bs]
 
--- Base case for redundant1: Return empty list if input list is empty
-redundant1 [] _ _ _ = []
--- Removes redundant combinations with same total area
-redundant1 ((x,y):comb1) unique num_bedroom num_hall =
-    -- If total area is already present in unique list, then call redundant1 recursively
-    -- for rest of the list
-    if elem (fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall) unique then
-        redundant1 comb1 unique num_bedroom num_hall
-    -- Else, put the total area in unique list and call redundant1 recursively for rest
-    -- of the list and append (x,y) to the answer
-    else
-        (x,y) : redundant1 comb1 (fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall:unique)
-            num_bedroom num_hall
-
 -- Forms tuple (a, b, c) given list as and cs
 combinations2 as cs = [(a, b, c) | (a,b) <- as, c <- cs]
-
--- Base case for redundant2: Return empty list if input list is empty
-redundant2 [] _ _ _ _ = []
--- Removes redundant combinations with same total area
-redundant2 ((x,y,z):comb2) unique num_bedroom num_hall num_kitchen =
-    -- If total area is already present in unique list, then call redundant2 recursively
-    -- for rest of the list
-    if elem (fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall+fst(z)*snd(z)*num_kitchen)
-        unique then
-        
-        redundant2 comb2 unique num_bedroom num_hall num_kitchen
-    -- Else, put the total area in unique list and call redundant2 recursively for rest
-    -- of the list and append (x,y) to the answer
-    else
-        (x,y,z) : redundant2 comb2 (fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall
-            +fst(z)*snd(z)*num_kitchen:unique) num_bedroom num_hall num_kitchen
 
 -- Forms tuple (a, b, c, d) given list as and ds
 combinations3 as ds = [(a, b, c, d) | (a,b,c) <- as, d <- ds]
@@ -154,18 +124,14 @@ design area num_bedroom num_hall = do
     -- Combine bedroom and hall dimensions to form combination tuple: (bedroom, hall)
     let comb1 = combinations1 poss_area_bedroom poss_area_hall
     -- Keep only those tuples whose total area is less than or equal to given area
-    let filter_comb1 = filter (\(x,y) -> fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall <= area) comb1
-    -- Remove redundant tuples whose total area is same
-    let new_comb1 = redundant1 filter_comb1 [] num_bedroom num_hall
+    let new_comb1 = filter (\(x,y) -> fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall <= area) comb1
 
     -- Combine previous and kitchen dimensions to form combination tuple: (bedroom, hall, kitchen)
     let comb2 = combinations2 new_comb1 poss_area_kitchen
     -- Keep only those tuples whose total area is less than or equal to given area
     let filter_comb2 = filter (\(x,y,z) -> fst(x)*snd(x)*num_bedroom+fst(y)*snd(y)*num_hall+fst(z)*snd(z)*num_kitchen <= area) comb2
     -- dimension of a kitchen must not be larger than that of a hall or a bedroom
-    let filter2_comb2 = filter (\(x,y,z) -> fst(z) <= fst(x) && fst(z) <= fst(y) && snd(z) <= snd(x) && snd(z) <= snd(y)) filter_comb2
-    -- Remove redundant tuples whose total area is same
-    let new_comb2 = redundant2 filter2_comb2 [] num_bedroom num_hall num_kitchen
+    let new_comb2 = filter (\(x,y,z) -> fst(z) <= fst(x) && fst(z) <= fst(y) && snd(z) <= snd(x) && snd(z) <= snd(y)) filter_comb2
 
     -- Combine previous and bathroom dimensions to form combination tuple: (bedroom, hall, kitchen, bathroom)
     let comb3 = combinations3 new_comb2 poss_area_bathroom
