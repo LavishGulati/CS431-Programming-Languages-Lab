@@ -6,17 +6,13 @@ import System.IO.Unsafe
 import Data.IORef
 import System.Random
 
-listg :: IORef [[Char]]
-listg = unsafePerformIO (newIORef [])
-
-readg :: IO [[Char]]
-readg = readIORef listg
-
-writeg :: [[Char]] -> IO ()
-writeg value = writeIORef listg value
+-- Initialize random utility functions
+random_list = unsafePerformIO(newIORef [])
+random_gen = readIORef random_list
+random_store val = writeIORef random_list val
 
 -- Match time information
-times = [("1-12-2020","9:30"),("1-12-2020","7:30"),("2-12-2020","9:30"),("2-12-2020","7:30"),("3-12-2020","9:30"),("3-12-2020","7:30")]
+times = [("1-12-2020","9:30 AM"),("1-12-2020","7:30 PM"),("2-12-2020","9:30 AM"),("2-12-2020","7:30 PM"),("3-12-2020","9:30 AM"),("3-12-2020","7:30 PM")]
 
 -- Number of matches
 maxMatches = length times
@@ -35,38 +31,47 @@ fixtureHelper i fixtures = if i == maxMatches then return() else do
 -- Prints fixture details
 -- Base case for fixture: When argument is "all", print all fixtures details
 fixture "all" = do
-    g <- newStdGen
-    let temp = randomR (1, 100000) g
-    let newSeed = fst(temp)
-    let shuffledTeams = permutations ["BS","CM","CH","CV","CS","DS","EE","HU","MA","ME","PH","ST"]!!newSeed
+    -- Initialize random generator
+    gen <- newStdGen
+    -- Get new seed from random generator
+    let seed = fst(randomR (1, 100000) gen)
+    -- Shuffle teams according to the random seed
+    let shuffledTeams = (permutations ["BS", "CM", "CH", "CV", "CS", "DS", "EE", "HU", "MA", "ME", "PH", "ST"])!!seed
     -- First half of shuffled list
     let firstHalfShuffledTeams = take maxMatches shuffledTeams
     -- Second half of shuffled list
     let secondHalfShuffledTeams = drop maxMatches shuffledTeams
     -- Create fixtures by combining first half of teams and second half of teams
     let fixtures = zip firstHalfShuffledTeams secondHalfShuffledTeams
-
-    writeg shuffledTeams
+    -- Store shuffledTeams as a reference variable
+    random_store shuffledTeams
+    -- Print all fixtures
     fixtureHelper 0 fixtures
 
 -- Prints fixture details of specified team
 fixture team = do
-    shuffledTeams <- readg
+    -- Fetch shuffledTeams from stored reference
+    shuffledTeams <- random_gen
     -- First half of shuffled list
     let firstHalfShuffledTeams = take maxMatches shuffledTeams
     -- Second half of shuffled list
     let secondHalfShuffledTeams = drop maxMatches shuffledTeams
     -- Create fixtures by combining first half of teams and second half of teams
     let fixtures = zip firstHalfShuffledTeams secondHalfShuffledTeams
-    -- If team exists, then write fixture details of that team
-    -- Else print error 
-    case elemIndex team shuffledTeams of
-        Just id -> if id < maxMatches then writeDetails id fixtures else writeDetails (id-maxMatches) fixtures
-        Nothing -> putStrLn "Team does not exist!"
+    -- If shuffledTeams is null, throw error
+    -- Else if team exists, then write fixture details of that team
+    -- Else print error
+    if null shuffledTeams then
+        putStrLn "Fixtures not initialized!"
+    else
+        case elemIndex team shuffledTeams of
+            Just id -> if id < maxMatches then writeDetails id fixtures else writeDetails (id-maxMatches) fixtures
+            Nothing -> putStrLn "Team does not exist!"
 
 -- Prints next match details given date and time
 nextMatch day time = do
-    shuffledTeams <- readg
+    -- Fetch shuffledTeams from stored reference
+    shuffledTeams <- random_gen
     -- First half of shuffled list
     let firstHalfShuffledTeams = take maxMatches shuffledTeams
     -- Second half of shuffled list
@@ -75,7 +80,7 @@ nextMatch day time = do
     let fixtures = zip firstHalfShuffledTeams secondHalfShuffledTeams
     -- Invalid case for day
     if null shuffledTeams then
-        putStrLn "fixtures not initalized"
+        putStrLn "Fixtures not initialized!"
     else if day < 1 || day > 31 then
         putStrLn "Invalid day!"
     -- Invalid case for time

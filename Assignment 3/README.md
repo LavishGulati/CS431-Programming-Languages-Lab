@@ -3,12 +3,51 @@
 
 ## 1 - Implement Haskell Functions for Basic Set Operations
 
+isEmpty - Checks whether a set is empty
+
+unionSet - Returns union of two sets
+
+intersection - Returns intersection of two sets
+
+subtraction - Returns differencce of two sets, i.e. A-B
+
+addition - Returns addition of two sets
+
+NOTE: All inputs are given as lists.
+
+#### Steps to run
+```shell
+ghci SetOperations.hs
+```
+
+#### Examples
+```haskell
+-- NOTE: Press ':q' to exit the program.
+
+*Main> isEmpty []
+True
+
+*Main> isEmpty [1, 2, 3]
+False
+
+*Main> union [1,2,3,4,5,6] [4,5,6,7,8,9,10]
+[1,2,3,4,5,6,7,8,9,10]
+
+*Main> intersection [1,2,3,4,5,6] [4,5,6,7,8,9,10]
+[4,5,6]
+
+*Main> subtraction [1,2,3,4,5,6] [4,5,6,7,8,9,10]
+[1,2,3]
+
+*Main> addition [1,2] [1,2,4]
+[2,5,3,4,6]
+```
 
 ---
 
 ## 2 - IITG Football League
 
-fixture "all" - Displays entire fixture details.
+fixture "all" - Generates fixtures according to random draw and displays entire fixture details.
 
 fixture "team" - Displays fixture details of specified team.
 
